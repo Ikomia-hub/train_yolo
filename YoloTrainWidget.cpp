@@ -38,6 +38,7 @@ void CYoloTrainWidget::init()
     auto pCheckAutoConfig = addCheck("Auto configuration", m_pParam->m_bAutoConfig);
     auto pBrowseFile = addBrowseFile("Configuration file path", QString::fromStdString(m_pParam->m_configPath), "Select configuration file");
     pBrowseFile->setEnabled(m_pParam->m_bAutoConfig == false);
+    auto pBrowseOutFolder = addBrowseFolder("Output folder", QString::fromStdString(m_pParam->m_outputPath), "Select output folder");
 
     connect(pCheckAutoConfig, &QCheckBox::stateChanged, [=](int state)
     {
@@ -57,6 +58,7 @@ void CYoloTrainWidget::init()
         m_pParam->m_weightDecay = pSpinDecay->value();
         m_pParam->m_bAutoConfig = pCheckAutoConfig->isChecked();
         m_pParam->m_configPath = pBrowseFile->getPath().toStdString();
+        m_pParam->m_outputPath = pBrowseOutFolder->getPath().toStdString();
         emit doApplyProcess(m_pParam);
     });
 }

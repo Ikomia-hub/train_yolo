@@ -33,6 +33,48 @@ std::map<int, std::string> _modelNames =
     {CYoloTrainParam::ENET_B0_YOLOV3, "EfficientNet B0 YOLOv3"}
 };
 
+//---------------------------//
+//----- CYoloTrainParam -----//
+//---------------------------//
+CYoloTrainParam::CYoloTrainParam() : CDnnTrainProcessParam()
+{
+    m_batchSize = 32;
+    auto pluginDir = Utils::Plugin::getCppPath() + "/" + Utils::File::conformName(QObject::tr("YoloTrain")).toStdString() + "/";
+    m_outputPath = pluginDir + "data/models";
+}
+
+void CYoloTrainParam::setParamMap(const UMapString &paramMap)
+{
+    CDnnTrainProcessParam::setParamMap(paramMap);
+    m_model = std::stoi(paramMap.at("model"));
+    m_gpuCount = std::stoi(paramMap.at("gpuCount"));
+    m_subdivision = std::stoi(paramMap.at("subdivision"));
+    m_inputWidth = std::stoi(paramMap.at("inputWidth"));
+    m_inputHeight = std::stoi(paramMap.at("inputHeight"));
+    m_splitRatio = std::stof(paramMap.at("splitRatio"));
+    m_bAutoConfig = std::stoi(paramMap.at("bAutoConfig"));
+    m_configPath = paramMap.at("configPath");
+    m_outputPath = paramMap.at("outputPath");
+}
+
+UMapString CYoloTrainParam::getParamMap() const
+{
+    auto paramMap = CDnnTrainProcessParam::getParamMap();
+    paramMap.insert(std::make_pair("model", std::to_string(m_model)));
+    paramMap.insert(std::make_pair("gpuCount", std::to_string(m_gpuCount)));
+    paramMap.insert(std::make_pair("subdivision", std::to_string(m_subdivision)));
+    paramMap.insert(std::make_pair("inputWidth", std::to_string(m_inputWidth)));
+    paramMap.insert(std::make_pair("inputHeight", std::to_string(m_inputHeight)));
+    paramMap.insert(std::make_pair("splitRatio", std::to_string(m_splitRatio)));
+    paramMap.insert(std::make_pair("bAutoConfig", std::to_string(m_bAutoConfig)));
+    paramMap.insert(std::make_pair("configPath", m_configPath));
+    paramMap.insert(std::make_pair("outputPath", m_outputPath));
+    return paramMap;
+}
+
+//----------------------//
+//----- CYoloTrain -----//
+//----------------------//
 CYoloTrain::CYoloTrain() : CMlflowTrainProcess()
 {
     m_pParam = std::make_shared<CYoloTrainParam>();
@@ -218,6 +260,7 @@ void CYoloTrain::createClassNamesFile(const QJsonDocument &json)
 
 void CYoloTrain::createGlobalDataFile()
 {
+    auto paramPtr = std::dynamic_pointer_cast<CYoloTrainParam>(m_pParam);
     QString pluginDir = QString::fromStdString(Utils::Plugin::getCppPath()) + "/" + Utils::File::conformName(QString::fromStdString(m_name)) + "/";
     QString path = pluginDir + "data/training.data";
     QFile file(path);
@@ -225,12 +268,16 @@ void CYoloTrain::createGlobalDataFile()
     if(file.open(QFile::WriteOnly | QFile::Text) == false)
         throw CException(CoreExCode::INVALID_FILE, "Unable to create file classes.txt", __func__, __FILE__, __LINE__);
 
+    QString outFolder = QString::fromStdString(paramPtr->m_outputPath) + "/" + QDateTime::currentDateTime().toString(Qt::ISODate);
+    outFolder = Utils::File::conformName(outFolder);
+    Utils::File::createDirectory(outFolder.toStdString());
+
     QTextStream stream(&file);
     stream << "classes = " << m_classCount << "\n";
     stream << "train = " << pluginDir + "data/train.txt\n";
     stream << "valid = " << pluginDir + "data/eval.txt\n";
     stream << "names = " << pluginDir + "data/classes.txt\n";
-    stream << "backup = " << pluginDir + "data/models\n";
+    stream << "backup = " << outFolder << "\n";
     stream << "metrics = " << pluginDir + "data/metrics.txt";
 }
 

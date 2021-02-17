@@ -16,37 +16,11 @@ class YOLOTRAIN_EXPORT CYoloTrainParam: public CDnnTrainProcessParam
 
         enum Model {YOLOV4, YOLOV3, TINY_YOLOV4, TINY_YOLOV3, ENET_B0_YOLOV3};
 
-        CYoloTrainParam() : CDnnTrainProcessParam()
-        {
-            m_batchSize = 32;
-        }
+        CYoloTrainParam();
 
-        void        setParamMap(const UMapString& paramMap) override
-        {
-            CDnnTrainProcessParam::setParamMap(paramMap);
-            m_model = std::stoi(paramMap.at("model"));
-            m_gpuCount = std::stoi(paramMap.at("gpuCount"));
-            m_subdivision = std::stoi(paramMap.at("subdivision"));
-            m_inputWidth = std::stoi(paramMap.at("inputWidth"));
-            m_inputHeight = std::stoi(paramMap.at("inputHeight"));
-            m_splitRatio = std::stof(paramMap.at("splitRatio"));
-            m_bAutoConfig = std::stoi(paramMap.at("bAutoConfig"));
-            m_configPath = paramMap.at("configPath");
-        }
+        void        setParamMap(const UMapString& paramMap) override;
 
-        UMapString  getParamMap() const override
-        {
-            auto paramMap = CDnnTrainProcessParam::getParamMap();
-            paramMap.insert(std::make_pair("model", std::to_string(m_model)));
-            paramMap.insert(std::make_pair("gpuCount", std::to_string(m_gpuCount)));
-            paramMap.insert(std::make_pair("subdivision", std::to_string(m_subdivision)));
-            paramMap.insert(std::make_pair("inputWidth", std::to_string(m_inputWidth)));
-            paramMap.insert(std::make_pair("inputHeight", std::to_string(m_inputHeight)));
-            paramMap.insert(std::make_pair("splitRatio", std::to_string(m_splitRatio)));
-            paramMap.insert(std::make_pair("bAutoConfig", std::to_string(m_bAutoConfig)));
-            paramMap.insert(std::make_pair("configPath", m_configPath));
-            return paramMap;
-        }
+        UMapString  getParamMap() const override;
 
     public:
 
@@ -58,6 +32,7 @@ class YOLOTRAIN_EXPORT CYoloTrainParam: public CDnnTrainProcessParam
         float       m_splitRatio = 0.9;
         bool        m_bAutoConfig = true;
         std::string m_configPath = "";
+        std::string m_outputPath = "";
 };
 
 //----------------------//
@@ -120,7 +95,7 @@ class YOLOTRAIN_EXPORT CYoloTrainFactory : public CProcessFactory
             m_info.m_shortDescription = QObject::tr("Train YOLO neural network with darknet framework").toStdString();
             m_info.m_description = QObject::tr("Train YOLO neural network with darknet framework.").toStdString();
             m_info.m_path = QObject::tr("Plugins/C++/Train").toStdString();
-            m_info.m_version = "1.0.0";
+            m_info.m_version = "1.1.0";
             m_info.m_iconPath = "Icon/icon.png";
             m_info.m_authors = "Ikomia team";
             m_info.m_article = "";
