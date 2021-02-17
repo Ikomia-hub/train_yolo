@@ -1,0 +1,12 @@
+#ifndef YOLOTRAINGLOBAL_HPP
+#define YOLOTRAINGLOBAL_HPP
+
+#include <QtCore/qglobal.h>
+
+#if defined(YOLOTRAIN_LIBRARY)
+#  define YOLOTRAIN_EXPORT Q_DECL_EXPORT
+#else
+#  define YOLOTRAIN_EXPORT Q_DECL_IMPORT
+#endif
+
+#endif // YOLOTRAINGLOBAL_HPP
