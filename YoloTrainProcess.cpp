@@ -268,8 +268,7 @@ void CYoloTrain::createGlobalDataFile()
     if(file.open(QFile::WriteOnly | QFile::Text) == false)
         throw CException(CoreExCode::INVALID_FILE, "Unable to create file classes.txt", __func__, __FILE__, __LINE__);
 
-    m_outputFolder = QString::fromStdString(paramPtr->m_outputPath) + "/" + QDateTime::currentDateTime().toString(Qt::ISODate);
-    m_outputFolder = Utils::File::conformName(m_outputFolder);
+    m_outputFolder = QString::fromStdString(paramPtr->m_outputPath) + "/" + Utils::File::conformName(QDateTime::currentDateTime().toString(Qt::ISODate));
     Utils::File::createDirectory(m_outputFolder.toStdString());
 
     QTextStream stream(&file);
