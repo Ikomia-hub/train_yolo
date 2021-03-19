@@ -78,6 +78,7 @@ class YOLOTRAIN_EXPORT CYoloTrain: public CMlflowTrainProcess
         int                     m_mlflowLogFreq = 1;
         std::atomic_bool        m_bStop{false};
         std::atomic_bool        m_bFinished{false};
+        QString                 m_outputFolder;
         QFile                   m_logFile;
         std::queue<YoloMetrics> m_metricsQueue;
 };

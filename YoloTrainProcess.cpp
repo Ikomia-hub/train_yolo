@@ -272,16 +272,15 @@ void CYoloTrain::createGlobalDataFile()
     if(file.open(QFile::WriteOnly | QFile::Text) == false)
         throw CException(CoreExCode::INVALID_FILE, "Unable to create file classes.txt", __func__, __FILE__, __LINE__);
 
-    QString outFolder = QString::fromStdString(paramPtr->m_outputPath) + "/" + QDateTime::currentDateTime().toString(Qt::ISODate);
-    outFolder = Utils::File::conformName(outFolder);
-    Utils::File::createDirectory(outFolder.toStdString());
+    m_outputFolder = QString::fromStdString(paramPtr->m_outputPath) + "/" + Utils::File::conformName(QDateTime::currentDateTime().toString(Qt::ISODate));
+    Utils::File::createDirectory(m_outputFolder.toStdString());
 
     QTextStream stream(&file);
     stream << "classes = " << m_classCount << "\n";
     stream << "train = " << pluginDir + "data/train.txt\n";
     stream << "valid = " << pluginDir + "data/eval.txt\n";
     stream << "names = " << pluginDir + "data/classes.txt\n";
-    stream << "backup = " << outFolder << "\n";
+    stream << "backup = " << m_outputFolder << "\n";
     stream << "metrics = " << pluginDir + "data/metrics.txt";
 }
 
@@ -540,6 +539,13 @@ void CYoloTrain::launchTraining()
 
     //Log config file
     logArtifact(configFilePath.toStdString());
+
+    //Copy files needed for inference
+    auto outFolder = m_outputFolder.toStdString();
+    auto pluginFolder = pluginDir.toStdString();
+    boost::filesystem::copy_file(pluginFolder + "data/config/training.cfg", outFolder + "/training.cfg", boost::filesystem::copy_option::overwrite_if_exists);
+    boost::filesystem::copy_file(pluginFolder + "data/classes.txt", outFolder + "/classes.txt", boost::filesystem::copy_option::overwrite_if_exists);
+
     emit m_signalHandler->doLog("YOLO training finished!");
 }
 
