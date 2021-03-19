@@ -89,9 +89,9 @@ CYoloTrain::CYoloTrain(const std::string &name, const std::shared_ptr<CYoloTrain
 
 size_t CYoloTrain::getProgressSteps()
 {
-    auto paramPtr = std::dynamic_pointer_cast<CYoloTrainParam>(m_pParam);
-    prepareData();
-    return paramPtr->m_epochs;
+    // Progress steps count is computed from epochs count
+    // and updated epochs count is only available when run() is called
+    return 1;
 }
 
 void CYoloTrain::run()
@@ -108,6 +108,10 @@ void CYoloTrain::run()
     auto paramPtr = std::dynamic_pointer_cast<CYoloTrainParam>(m_pParam);
     if(paramPtr == nullptr)
         throw CException(CoreExCode::INVALID_PARAMETER, "Invalid parameters", __func__, __FILE__, __LINE__);
+
+    // Dataset preparation
+    prepareData();
+    emit m_signalHandler->doAddSubTotalSteps(paramPtr->m_epochs - 1);
 
     // MLflow parameters logging
     initParamsLogging();
