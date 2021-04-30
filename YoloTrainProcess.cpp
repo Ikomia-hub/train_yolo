@@ -1,7 +1,7 @@
 #include <QJsonObject>
 #include <QJsonArray>
 #include "YoloTrainProcess.h"
-#include "IO/CDatasetIO.hpp"
+#include "IO/CDatasetIO.h"
 #include "UtilsTools.hpp"
 
 using namespace boost::python;
@@ -147,7 +147,7 @@ void CYoloTrain::prepareData()
     QJsonDocument json = datasetInputPtr->getJsonDocument();
 
     // Create dataset text annotation files
-    if(datasetInputPtr->getSourceFormat() != CDatasetIO::Format::YOLO)
+    if(datasetInputPtr->getSourceFormat() != "yolo")
         createAnnotationFiles(json);
 
     // Split train-eval
