@@ -21,18 +21,6 @@ class YOLOTRAIN_EXPORT CYoloTrainParam: public CDnnTrainProcessParam
         void        setParamMap(const UMapString& paramMap) override;
 
         UMapString  getParamMap() const override;
-
-    public:
-
-        int         m_model = TINY_YOLOV3;
-        int         m_gpuCount = 1;
-        int         m_subdivision = 16;
-        int         m_inputWidth = 416;
-        int         m_inputHeight = 416;
-        float       m_splitRatio = 0.9;
-        bool        m_bAutoConfig = true;
-        std::string m_configPath = "";
-        std::string m_outputPath = "";
 };
 
 //----------------------//
@@ -64,8 +52,6 @@ class YOLOTRAIN_EXPORT CYoloTrain: public CMlflowTrainProcess
 
         void        splitTrainEval(const QJsonDocument& json, float ratio = 0.9);
 
-        void        initParamsLogging();
-
         void        launchTraining();
 
         void        loadMetrics(QTextStream &stream);
@@ -96,7 +82,7 @@ class YOLOTRAIN_EXPORT CYoloTrainFactory : public CProcessFactory
             m_info.m_shortDescription = QObject::tr("Train YOLO neural network with darknet framework").toStdString();
             m_info.m_description = QObject::tr("Train YOLO neural network with darknet framework.").toStdString();
             m_info.m_path = QObject::tr("Plugins/C++/Train").toStdString();
-            m_info.m_version = "1.1.0";
+            m_info.m_version = "1.2.0";
             m_info.m_iconPath = "Icon/icon.png";
             m_info.m_authors = "Ikomia team";
             m_info.m_article = "";

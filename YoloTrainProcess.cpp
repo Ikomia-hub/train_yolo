@@ -38,38 +38,33 @@ std::map<int, std::string> _modelNames =
 //---------------------------//
 CYoloTrainParam::CYoloTrainParam() : CDnnTrainProcessParam()
 {
-    m_batchSize = 32;
     auto pluginDir = Utils::Plugin::getCppPath() + "/" + Utils::File::conformName(QObject::tr("YoloTrain")).toStdString() + "/";
-    m_outputPath = pluginDir + "data/models";
+    m_cfg["model"] = std::to_string(TINY_YOLOV3);
+    m_cfg["modelName"] = _modelNames[TINY_YOLOV3];
+    m_cfg["classes"] = "1";
+    m_cfg["batchSize"] = "32";
+    m_cfg["epochs"] = "1";
+    m_cfg["learningRate"] = "0.001";
+    m_cfg["momentum"] = "0.9";
+    m_cfg["weightDecay"] = "0.0005";
+    m_cfg["inputWidth"] = "416";
+    m_cfg["inputHeight"] = "416";
+    m_cfg["splitRatio"] = "0.9";
+    m_cfg["gpuCount"] = "1";
+    m_cfg["subdivision"] = "16";
+    m_cfg["autoConfig"] = std::to_string(true);
+    m_cfg["configPath"] = "";
+    m_cfg["outputPath"] = pluginDir + "data/models";;
 }
 
 void CYoloTrainParam::setParamMap(const UMapString &paramMap)
 {
     CDnnTrainProcessParam::setParamMap(paramMap);
-    m_model = std::stoi(paramMap.at("model"));
-    m_gpuCount = std::stoi(paramMap.at("gpuCount"));
-    m_subdivision = std::stoi(paramMap.at("subdivision"));
-    m_inputWidth = std::stoi(paramMap.at("inputWidth"));
-    m_inputHeight = std::stoi(paramMap.at("inputHeight"));
-    m_splitRatio = std::stof(paramMap.at("splitRatio"));
-    m_bAutoConfig = std::stoi(paramMap.at("bAutoConfig"));
-    m_configPath = paramMap.at("configPath");
-    m_outputPath = paramMap.at("outputPath");
 }
 
 UMapString CYoloTrainParam::getParamMap() const
 {
-    auto paramMap = CDnnTrainProcessParam::getParamMap();
-    paramMap.insert(std::make_pair("model", std::to_string(m_model)));
-    paramMap.insert(std::make_pair("gpuCount", std::to_string(m_gpuCount)));
-    paramMap.insert(std::make_pair("subdivision", std::to_string(m_subdivision)));
-    paramMap.insert(std::make_pair("inputWidth", std::to_string(m_inputWidth)));
-    paramMap.insert(std::make_pair("inputHeight", std::to_string(m_inputHeight)));
-    paramMap.insert(std::make_pair("splitRatio", std::to_string(m_splitRatio)));
-    paramMap.insert(std::make_pair("bAutoConfig", std::to_string(m_bAutoConfig)));
-    paramMap.insert(std::make_pair("configPath", m_configPath));
-    paramMap.insert(std::make_pair("outputPath", m_outputPath));
-    return paramMap;
+    return CDnnTrainProcessParam::getParamMap();
 }
 
 //----------------------//
@@ -79,12 +74,14 @@ CYoloTrain::CYoloTrain() : CMlflowTrainProcess()
 {
     m_pParam = std::make_shared<CYoloTrainParam>();
     addInput(std::make_shared<CDatasetIO>());
+    enableTensorboard(false);
 }
 
 CYoloTrain::CYoloTrain(const std::string &name, const std::shared_ptr<CYoloTrainParam> &paramPtr) : CMlflowTrainProcess(name)
 {
     m_pParam = std::make_shared<CYoloTrainParam>(*paramPtr);
     addInput(std::make_shared<CDatasetIO>());
+    enableTensorboard(false);
 }
 
 size_t CYoloTrain::getProgressSteps()
@@ -96,8 +93,6 @@ size_t CYoloTrain::getProgressSteps()
 
 void CYoloTrain::run()
 {
-    beginTaskRun();
-
     auto datasetInputPtr = std::dynamic_pointer_cast<CDatasetIO>(getInput(0));
     if(!datasetInputPtr)
         throw CException(CoreExCode::NULL_POINTER, "Invalid dataset input.", __func__, __FILE__, __LINE__);
@@ -111,10 +106,8 @@ void CYoloTrain::run()
 
     // Dataset preparation
     prepareData();
-    emit m_signalHandler->doAddSubTotalSteps(paramPtr->m_epochs - 1);
-
-    // MLflow parameters logging
-    initParamsLogging();
+    beginTaskRun();
+    emit m_signalHandler->doAddSubTotalSteps(std::stoi(paramPtr->m_cfg["epochs"]) - 1);
 
     // Launch training
     launchTraining();
@@ -158,19 +151,24 @@ void CYoloTrain::prepareData()
         createAnnotationFiles(json);
 
     // Split train-eval
-    splitTrainEval(json, paramPtr->m_splitRatio);
+    splitTrainEval(json, std::stof(paramPtr->m_cfg["splitRatio"]));
 
     // Create class names file
     createClassNamesFile(json);
 
     // Create config file (.cfg)
-    if(paramPtr->m_bAutoConfig)
+    bool bAutoConfig = std::stoi(paramPtr->m_cfg["autoConfig"]);
+    if(bAutoConfig)
         createConfigFile();
     else
         updateParamFromConfigFile();
 
     // Create global data file given to darknet
     createGlobalDataFile();
+
+    // Update config values
+    paramPtr->m_cfg["modelName"] = _modelNames[std::stoi(paramPtr->m_cfg["model"])];
+    paramPtr->m_cfg["classes"] = std::to_string(m_classCount);
 }
 
 void CYoloTrain::createAnnotationFiles(const QJsonDocument &json) const
@@ -272,7 +270,7 @@ void CYoloTrain::createGlobalDataFile()
     if(file.open(QFile::WriteOnly | QFile::Text) == false)
         throw CException(CoreExCode::INVALID_FILE, "Unable to create file classes.txt", __func__, __FILE__, __LINE__);
 
-    m_outputFolder = QString::fromStdString(paramPtr->m_outputPath) + "/" + Utils::File::conformName(QDateTime::currentDateTime().toString(Qt::ISODate));
+    m_outputFolder = QString::fromStdString(paramPtr->m_cfg["outputPath"]) + "/" + Utils::File::conformName(QDateTime::currentDateTime().toString(Qt::ISODate));
     Utils::File::createDirectory(m_outputFolder.toStdString());
 
     QTextStream stream(&file);
@@ -287,16 +285,17 @@ void CYoloTrain::createGlobalDataFile()
 void CYoloTrain::createConfigFile()
 {
     auto paramPtr = std::dynamic_pointer_cast<CYoloTrainParam>(m_pParam);
-    paramPtr->m_epochs = m_classCount * 2000;
-    int burnin = (int)(paramPtr->m_epochs * 0.05);
-    int step1 = (int)(paramPtr->m_epochs * 0.8);
-    int step2 = (int)(paramPtr->m_epochs * 0.9);
+    int epochs = m_classCount * 2000;
+    paramPtr->m_cfg["epochs"] = std::to_string(epochs);
+    int burnin = (int)(epochs * 0.05);
+    int step1 = (int)(epochs * 0.8);
+    int step2 = (int)(epochs * 0.9);
     int filters = (m_classCount + 5) * 3;
 
     QString pluginDir = QString::fromStdString(Utils::Plugin::getCppPath()) + "/" + Utils::File::conformName(QString::fromStdString(m_name)) + "/";
-    QString templatePath = pluginDir + "data/config/" + _modelConfigFiles[paramPtr->m_model];
+    QString templatePath = pluginDir + "data/config/" + _modelConfigFiles[std::stoi(paramPtr->m_cfg["model"])];
     QString configPath = pluginDir + "data/config/training.cfg";
-    paramPtr->m_configPath = configPath.toStdString();
+    paramPtr->m_cfg["configPath"] = configPath.toStdString();
 
     QFile templateFile(templatePath);
     if(templateFile.open(QFile::ReadOnly | QFile::Text) == false)
@@ -306,15 +305,15 @@ void CYoloTrain::createConfigFile()
     auto templateContent = txtStream.readAll();
     templateFile.close();
 
-    auto newContent = templateContent.replace("_batch_", QString::number(paramPtr->m_batchSize));
-    newContent = newContent.replace("_subdivision_", QString::number(paramPtr->m_subdivision));
-    newContent = newContent.replace("_width_", QString::number(paramPtr->m_inputWidth));
-    newContent = newContent.replace("_height_", QString::number(paramPtr->m_inputHeight));
-    newContent = newContent.replace("_momentum_", QString::number(paramPtr->m_momentum));
-    newContent = newContent.replace("_decay_", QString::number(paramPtr->m_weightDecay));
-    newContent = newContent.replace("_lr_", QString::number(paramPtr->m_learningRate));
+    auto newContent = templateContent.replace("_batch_", QString::fromStdString(paramPtr->m_cfg["batchSize"]));
+    newContent = newContent.replace("_subdivision_", QString::fromStdString(paramPtr->m_cfg["subdivision"]));
+    newContent = newContent.replace("_width_", QString::fromStdString(paramPtr->m_cfg["inputWidth"]));
+    newContent = newContent.replace("_height_", QString::fromStdString(paramPtr->m_cfg["inputHeight"]));
+    newContent = newContent.replace("_momentum_", QString::fromStdString(paramPtr->m_cfg["momentum"]));
+    newContent = newContent.replace("_decay_", QString::fromStdString(paramPtr->m_cfg["weightDecay"]));
+    newContent = newContent.replace("_lr_", QString::fromStdString(paramPtr->m_cfg["learningRate"]));
     newContent = newContent.replace("_burnin_", QString::number(burnin));
-    newContent = newContent.replace("_epochs_", QString::number(paramPtr->m_epochs));
+    newContent = newContent.replace("_epochs_", QString::fromStdString(paramPtr->m_cfg["epochs"]));
     newContent = newContent.replace("_steps_", QString::number(step1)+ "," + QString::number(step2));
     newContent = newContent.replace("_filters_", QString::number(filters));
     newContent = newContent.replace("_classes_", QString::number(m_classCount));
@@ -331,7 +330,7 @@ void CYoloTrain::createConfigFile()
 void CYoloTrain::updateParamFromConfigFile()
 {
     auto paramPtr = std::dynamic_pointer_cast<CYoloTrainParam>(m_pParam);
-    QFile configFile(QString::fromStdString(paramPtr->m_configPath));
+    QFile configFile(QString::fromStdString(paramPtr->m_cfg["configPath"]));
 
     if(configFile.open(QFile::ReadOnly | QFile::Text) == false)
         return;
@@ -348,56 +347,56 @@ void CYoloTrain::updateParamFromConfigFile()
     match = re.match(config);
 
     if(match.hasMatch())
-        paramPtr->m_batchSize = match.captured(1).toInt();
+        paramPtr->m_cfg["batchSize"] = match.captured(1).toStdString();
 
     //Subdivision
     re.setPattern("subdivisions *= *([0-9]+)");
     match = re.match(config);
 
     if(match.hasMatch())
-        paramPtr->m_subdivision = match.captured(1).toInt();
+        paramPtr->m_cfg["subdivision"] = match.captured(1).toStdString();
 
     //Input width
     re.setPattern("width *= *([0-9]+)");
     match = re.match(config);
 
     if(match.hasMatch())
-        paramPtr->m_inputWidth = match.captured(1).toInt();
+        paramPtr->m_cfg["inputWidth"] = match.captured(1).toStdString();
 
     //Input height
     re.setPattern("width *= *([0-9]+)");
     match = re.match(config);
 
     if(match.hasMatch())
-        paramPtr->m_inputHeight = match.captured(1).toInt();
+        paramPtr->m_cfg["inputHeight"] = match.captured(1).toStdString();
 
     //Momentum
     re.setPattern("momentum *= *([0-9.]+)");
     match = re.match(config);
 
     if(match.hasMatch())
-        paramPtr->m_momentum = match.captured(1).toFloat();
+        paramPtr->m_cfg["momentum"] = match.captured(1).toStdString();
 
     //Decay
     re.setPattern("decay *= *([0-9.]+)");
     match = re.match(config);
 
     if(match.hasMatch())
-        paramPtr->m_weightDecay = match.captured(1).toFloat();
+        paramPtr->m_cfg["weightDecay"] = match.captured(1).toStdString();
 
     //Learning rate
     re.setPattern("learning_rate *= *([0-9.]+)");
     match = re.match(config);
 
     if(match.hasMatch())
-        paramPtr->m_learningRate = match.captured(1).toFloat();
+        paramPtr->m_cfg["learningRate"] = match.captured(1).toStdString();
 
     //Epochs
     re.setPattern("max_batches *= *([0-9]+)");
     match = re.match(config);
 
     if(match.hasMatch())
-        paramPtr->m_epochs = match.captured(1).toInt();
+        paramPtr->m_cfg["epochs"] = match.captured(1).toStdString();
 }
 
 void CYoloTrain::splitTrainEval(const QJsonDocument &json, float ratio)
@@ -454,34 +453,13 @@ void CYoloTrain::splitTrainEval(const QJsonDocument &json, float ratio)
     evalFile.close();
 }
 
-void CYoloTrain::initParamsLogging()
-{
-    auto paramPtr = std::dynamic_pointer_cast<CYoloTrainParam>(m_pParam);
-    if(paramPtr)
-    {
-        std::map<std::string, std::string> params;
-        paramPtr->m_modelName = _modelNames[paramPtr->m_model];
-        paramPtr->m_classes = m_classCount;
-        params["Model"] = paramPtr->m_model;
-        params["Batch size"] = std::to_string(paramPtr->m_batchSize);
-        params["Epochs"] = std::to_string(paramPtr->m_epochs);
-        params["Classes"] = std::to_string(paramPtr->m_classes);
-        params["Input width"] = std::to_string(paramPtr->m_inputWidth);
-        params["Input height"] = std::to_string(paramPtr->m_inputHeight);
-        params["Learning rate"] = std::to_string(paramPtr->m_learningRate);
-        params["Momentum"] = std::to_string(paramPtr->m_momentum);
-        params["Weight decay"] = std::to_string(paramPtr->m_weightDecay);
-        logParams(params);
-    }
-}
-
 void CYoloTrain::launchTraining()
 {
     auto paramPtr = std::dynamic_pointer_cast<CYoloTrainParam>(m_pParam);
     QString pluginDir = QString::fromStdString(Utils::Plugin::getCppPath()) + "/" + Utils::File::conformName(QString::fromStdString(m_name)) + "/";
     QString dataFilePath = pluginDir + "data/training.data";
-    QString configFilePath = QString::fromStdString(paramPtr->m_configPath);
-    QString weightsFilePath = pluginDir + "data/models/pretrained/" + _modelWeightFiles[paramPtr->m_model];
+    QString configFilePath = QString::fromStdString(paramPtr->m_cfg["configPath"]);
+    QString weightsFilePath = pluginDir + "data/models/pretrained/" + _modelWeightFiles[std::stoi(paramPtr->m_cfg["model"])];
     QString metricsFilePath = pluginDir + "data/metrics.txt";
     QString logFilePath = pluginDir + "data/log.txt";
     QString darknetExe = pluginDir + "darknet";
@@ -501,7 +479,7 @@ void CYoloTrain::launchTraining()
     QTextStream metricsStream(&metricsFile);
 
     //MLflow is quiet slow, we log metrics asynchronously
-    m_mlflowLogFreq = std::max(1, paramPtr->m_epochs / 100);
+    m_mlflowLogFreq = std::max(1, std::stoi(paramPtr->m_cfg["epochs"]) / 100);
     auto mlflowFuture = Utils::async([&]
     {
         while(!m_metricsQueue.empty() || m_bFinished == false)
