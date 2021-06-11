@@ -82,7 +82,7 @@ class YOLOTRAIN_EXPORT CYoloTrainFactory : public CProcessFactory
             m_info.m_shortDescription = QObject::tr("Train YOLO neural network with darknet framework").toStdString();
             m_info.m_description = QObject::tr("Train YOLO neural network with darknet framework.").toStdString();
             m_info.m_path = QObject::tr("Plugins/C++/Train").toStdString();
-            m_info.m_version = "1.2.0";
+            m_info.m_version = "1.2.1";
             m_info.m_iconPath = "Icon/icon.png";
             m_info.m_authors = "Ikomia team";
             m_info.m_article = "";
