@@ -27,8 +27,8 @@ void CYoloTrainWidget::init()
     pComboModel->addItem("EfficientNet B0 YOLOv3", CYoloTrainParam::ENET_B0_YOLOV3);
     pComboModel->setCurrentIndex(pComboModel->findData(std::stoi(m_pParam->m_cfg["model"])));
 
-    auto pSpinWidth = addSpin("Input width", std::stoi(m_pParam->m_cfg["inputWidth"]), 1, 1024, 1);
-    auto pSpinHeight = addSpin("Input height", std::stoi(m_pParam->m_cfg["inputHeight"]), 1, 1024, 1);
+    auto pSpinWidth = addSpin("Input width", std::stoi(m_pParam->m_cfg["inputWidth"]), 1);
+    auto pSpinHeight = addSpin("Input height", std::stoi(m_pParam->m_cfg["inputHeight"]), 1);
     auto pSpinTrainEvalRatio = addDoubleSpin("Train/Eval split ratio", std::stod(m_pParam->m_cfg["splitRatio"]), 0.1, 0.9, 0.1, 1);
     auto pSpinBatchSize = addSpin("Batch size", std::stoi(m_pParam->m_cfg["batchSize"]), 1, 64, 1);
     auto pSpinLr = addDoubleSpin("Learning rate", std::stod(m_pParam->m_cfg["learningRate"]), 0.0001, 0.1, 0.001, 4);
