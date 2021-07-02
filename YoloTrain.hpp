@@ -17,7 +17,7 @@ class YOLOTRAIN_EXPORT CYoloTrainInterface : public QObject, public CPluginProce
 
     public:
 
-        virtual std::shared_ptr<CProcessFactory> getProcessFactory()
+        virtual std::shared_ptr<CTaskFactory> getProcessFactory()
         {
             return std::make_shared<CYoloTrainFactory>();
         }

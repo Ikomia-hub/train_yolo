@@ -8,12 +8,12 @@
 //----------------------------//
 //----- CYoloTrainWidget -----//
 //----------------------------//
-class YOLOTRAIN_EXPORT CYoloTrainWidget: public CProtocolTaskWidget
+class YOLOTRAIN_EXPORT CYoloTrainWidget: public CWorkflowTaskWidget
 {
     public:
 
         CYoloTrainWidget(QWidget *parent = Q_NULLPTR);
-        CYoloTrainWidget(ProtocolTaskParamPtr pParam, QWidget *parent = Q_NULLPTR);
+        CYoloTrainWidget(WorkflowTaskParamPtr pParam, QWidget *parent = Q_NULLPTR);
 
     private:
 
@@ -36,7 +36,7 @@ class YOLOTRAIN_EXPORT CYoloTrainWidgetFactory : public CWidgetFactory
             m_name = QObject::tr("YoloTrain").toStdString();
         }
 
-        virtual ProtocolTaskWidgetPtr   create(ProtocolTaskParamPtr pParam)
+        virtual WorkflowTaskWidgetPtr   create(WorkflowTaskParamPtr pParam)
         {
             return std::make_shared<CYoloTrainWidget>(pParam);
         }

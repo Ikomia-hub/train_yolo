@@ -4,13 +4,13 @@
 #include <QTextStream>
 #include <QFile>
 #include "YoloTrainGlobal.hpp"
-#include "Core/CProcessFactory.hpp"
-#include "Core/CMlflowTrainProcess.h"
+#include "Core/CTaskFactory.hpp"
+#include "Core/CMlflowTrainTask.h"
 
 //---------------------------//
 //----- CYoloTrainParam -----//
 //---------------------------//
-class YOLOTRAIN_EXPORT CYoloTrainParam: public CDnnTrainProcessParam
+class YOLOTRAIN_EXPORT CYoloTrainParam: public CDnnTrainTaskParam
 {
     public:
 
@@ -26,7 +26,7 @@ class YOLOTRAIN_EXPORT CYoloTrainParam: public CDnnTrainProcessParam
 //----------------------//
 //----- CYoloTrain -----//
 //----------------------//
-class YOLOTRAIN_EXPORT CYoloTrain: public CMlflowTrainProcess
+class YOLOTRAIN_EXPORT CYoloTrain: public CMlflowTrainTask
 {
     public:
 
@@ -72,7 +72,7 @@ class YOLOTRAIN_EXPORT CYoloTrain: public CMlflowTrainProcess
 //-----------------------------//
 //----- CYoloTrainFactory -----//
 //-----------------------------//
-class YOLOTRAIN_EXPORT CYoloTrainFactory : public CProcessFactory
+class YOLOTRAIN_EXPORT CYoloTrainFactory : public CTaskFactory
 {
     public:
 
@@ -91,7 +91,7 @@ class YOLOTRAIN_EXPORT CYoloTrainFactory : public CProcessFactory
             m_info.m_keywords = "deep,learning,detection,yolo,darknet";
         }
 
-        virtual ProtocolTaskPtr create(const ProtocolTaskParamPtr& pParam) override
+        virtual WorkflowTaskPtr create(const WorkflowTaskParamPtr& pParam) override
         {
             auto paramPtr = std::dynamic_pointer_cast<CYoloTrainParam>(pParam);
             if(paramPtr != nullptr)
@@ -99,7 +99,7 @@ class YOLOTRAIN_EXPORT CYoloTrainFactory : public CProcessFactory
             else
                 return create();
         }
-        virtual ProtocolTaskPtr create() override
+        virtual WorkflowTaskPtr create() override
         {
             auto paramPtr = std::make_shared<CYoloTrainParam>();
             assert(paramPtr != nullptr);

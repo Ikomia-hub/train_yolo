@@ -1,12 +1,12 @@
 #include "YoloTrainWidget.h"
 
-CYoloTrainWidget::CYoloTrainWidget(QWidget *parent): CProtocolTaskWidget(parent)
+CYoloTrainWidget::CYoloTrainWidget(QWidget *parent): CWorkflowTaskWidget(parent)
 {
     m_pParam = std::make_shared<CYoloTrainParam>();
     init();
 }
 
-CYoloTrainWidget::CYoloTrainWidget(ProtocolTaskParamPtr pParam, QWidget *parent): CProtocolTaskWidget(parent)
+CYoloTrainWidget::CYoloTrainWidget(WorkflowTaskParamPtr pParam, QWidget *parent): CWorkflowTaskWidget(parent)
 {
     m_pParam = std::dynamic_pointer_cast<CYoloTrainParam>(pParam);
     if(m_pParam == nullptr)

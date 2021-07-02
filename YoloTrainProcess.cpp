@@ -36,7 +36,7 @@ std::map<int, std::string> _modelNames =
 //---------------------------//
 //----- CYoloTrainParam -----//
 //---------------------------//
-CYoloTrainParam::CYoloTrainParam() : CDnnTrainProcessParam()
+CYoloTrainParam::CYoloTrainParam() : CDnnTrainTaskParam()
 {
     auto pluginDir = Utils::Plugin::getCppPath() + "/" + Utils::File::conformName(QObject::tr("YoloTrain")).toStdString() + "/";
     m_cfg["model"] = std::to_string(TINY_YOLOV3);
@@ -59,25 +59,25 @@ CYoloTrainParam::CYoloTrainParam() : CDnnTrainProcessParam()
 
 void CYoloTrainParam::setParamMap(const UMapString &paramMap)
 {
-    CDnnTrainProcessParam::setParamMap(paramMap);
+    CDnnTrainTaskParam::setParamMap(paramMap);
 }
 
 UMapString CYoloTrainParam::getParamMap() const
 {
-    return CDnnTrainProcessParam::getParamMap();
+    return CDnnTrainTaskParam::getParamMap();
 }
 
 //----------------------//
 //----- CYoloTrain -----//
 //----------------------//
-CYoloTrain::CYoloTrain() : CMlflowTrainProcess()
+CYoloTrain::CYoloTrain() : CMlflowTrainTask()
 {
     m_pParam = std::make_shared<CYoloTrainParam>();
     addInput(std::make_shared<CDatasetIO>());
     enableTensorboard(false);
 }
 
-CYoloTrain::CYoloTrain(const std::string &name, const std::shared_ptr<CYoloTrainParam> &paramPtr) : CMlflowTrainProcess(name)
+CYoloTrain::CYoloTrain(const std::string &name, const std::shared_ptr<CYoloTrainParam> &paramPtr) : CMlflowTrainTask(name)
 {
     m_pParam = std::make_shared<CYoloTrainParam>(*paramPtr);
     addInput(std::make_shared<CDatasetIO>());
