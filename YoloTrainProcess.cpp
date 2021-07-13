@@ -6,6 +6,10 @@
 
 using namespace boost::python;
 
+//---------------------------//
+//----- CYoloTrainParam -----//
+//---------------------------//
+
 std::map<int, QString> _modelConfigFiles =
 {
     {CYoloTrainParam::YOLOV4, "template-yolov4.cfg"},
@@ -33,10 +37,7 @@ std::map<int, std::string> _modelNames =
     {CYoloTrainParam::ENET_B0_YOLOV3, "EfficientNet B0 YOLOv3"}
 };
 
-//---------------------------//
-//----- CYoloTrainParam -----//
-//---------------------------//
-CYoloTrainParam::CYoloTrainParam() : CDnnTrainTaskParam()
+CYoloTrainParam::CYoloTrainParam() : CWorkflowTaskParam()
 {
     auto pluginDir = Utils::Plugin::getCppPath() + "/" + Utils::File::conformName(QObject::tr("YoloTrain")).toStdString() + "/";
     m_cfg["model"] = std::to_string(TINY_YOLOV3);
@@ -55,16 +56,6 @@ CYoloTrainParam::CYoloTrainParam() : CDnnTrainTaskParam()
     m_cfg["autoConfig"] = std::to_string(true);
     m_cfg["configPath"] = "";
     m_cfg["outputPath"] = pluginDir + "data/models";;
-}
-
-void CYoloTrainParam::setParamMap(const UMapString &paramMap)
-{
-    CDnnTrainTaskParam::setParamMap(paramMap);
-}
-
-UMapString CYoloTrainParam::getParamMap() const
-{
-    return CDnnTrainTaskParam::getParamMap();
 }
 
 //----------------------//
@@ -565,3 +556,4 @@ void CYoloTrain::deleteTrainingFiles()
     QFile::remove(dataDir + "log.txt");
     QFile::remove(dataDir + "metrics.txt");
 }
+

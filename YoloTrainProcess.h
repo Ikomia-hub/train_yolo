@@ -10,17 +10,13 @@
 //---------------------------//
 //----- CYoloTrainParam -----//
 //---------------------------//
-class YOLOTRAIN_EXPORT CYoloTrainParam: public CDnnTrainTaskParam
+class YOLOTRAIN_EXPORT CYoloTrainParam: public CWorkflowTaskParam
 {
     public:
 
         enum Model {YOLOV4, YOLOV3, TINY_YOLOV4, TINY_YOLOV3, ENET_B0_YOLOV3};
 
         CYoloTrainParam();
-
-        void        setParamMap(const UMapString& paramMap) override;
-
-        UMapString  getParamMap() const override;
 };
 
 //----------------------//
