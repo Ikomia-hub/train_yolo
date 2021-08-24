@@ -455,10 +455,29 @@ void CYoloTrain::launchTraining()
     QString logFilePath = pluginDir + "data/log.txt";
     QString darknetExe = pluginDir + "darknet";
 
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+
+    auto libFolder = QString::fromStdString(Utils::IkomiaApp::getIkomiaLibFolder());
+    if(QDir(libFolder).exists())
+    {
+
+#if defined(Q_OS_WIN64)
+#elif defined(Q_OS_LINUX)
+        QString libPath = env.value("LD_LIBRARY_PATH");
+        if(!libPath.contains(libFolder))
+        {
+            libPath = libFolder + ":" + libPath;
+            env.insert("LD_LIBRARY_PATH", libPath);
+        }
+#elif defined(Q_OS_MACOS)
+#endif
+    }
+
     QStringList args;
     args << "detector" << "train" << dataFilePath << configFilePath << weightsFilePath << "-dont_show" << "-map" << "-log_metrics";
 
     QProcess proc;
+    proc.setProcessEnvironment(env);
     proc.setProcessChannelMode(QProcess::MergedChannels);
     proc.setStandardOutputFile(logFilePath, QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
     proc.start(darknetExe, args);

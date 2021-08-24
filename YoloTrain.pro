@@ -52,7 +52,7 @@ LIBS += $$link_dataprocess()
 unix:!macx {
 bundleDarknet.path = $$DESTDIR
 bundleDarknet.commands += $$quote(cp -rf $$PWD/../../../darknet/buildDarknet/darknet $$DESTDIR $$escape_expand(\n\t))
-bundleDarknet.commands += $$quote(patchelf --set-rpath \'\$$ORIGIN:\$$ORIGIN/../../../App/lib\' $$DESTDIR/darknet $$escape_expand(\n\t))
+#bundleDarknet.commands += $$quote(patchelf --set-rpath \'\$$ORIGIN:\$$ORIGIN/../../../App/lib\' $$DESTDIR/darknet $$escape_expand(\n\t))
 INSTALLS += bundleDarknet
 }
 
