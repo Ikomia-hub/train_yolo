@@ -47,7 +47,7 @@ class YOLOTRAIN_EXPORT CYoloTrainWidgetFactory : public CWidgetFactory
 
         CYoloTrainWidgetFactory()
         {
-            m_name = QObject::tr("YoloTrain").toStdString();
+            m_name = "train_yolo";
         }
 
         virtual WorkflowTaskWidgetPtr   create(WorkflowTaskParamPtr pParam)
