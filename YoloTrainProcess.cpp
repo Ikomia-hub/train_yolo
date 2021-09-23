@@ -10,38 +10,37 @@ using namespace boost::python;
 //----- CYoloTrainParam -----//
 //---------------------------//
 
-std::map<int, QString> _modelConfigFiles =
+std::map<QString, QString> _modelConfigFiles =
 {
-    {CYoloTrainParam::YOLOV4, "template-yolov4.cfg"},
-    {CYoloTrainParam::YOLOV3, "template-yolov3.cfg"},
-    {CYoloTrainParam::TINY_YOLOV4, "template-yolov4-tiny.cfg"},
-    {CYoloTrainParam::TINY_YOLOV3, "template-yolov3-tiny-prn.cfg"},
-    {CYoloTrainParam::ENET_B0_YOLOV3, "template-enet-coco.cfg"}
+    {"yolov4", "template-yolov4.cfg"},
+    {"yolov3", "template-yolov3.cfg"},
+    {"tiny_yolov4", "template-yolov4-tiny.cfg"},
+    {"tiny_yolov3", "template-yolov3-tiny-prn.cfg"},
+    {"enet_b0_yolov3", "template-enet-coco.cfg"}
 };
 
-std::map<int, QString> _modelWeightFiles =
+std::map<QString, QString> _modelWeightFiles =
 {
-    {CYoloTrainParam::YOLOV4, "yolov4.conv.137"},
-    {CYoloTrainParam::YOLOV3, "darknet53.conv.74"},
-    {CYoloTrainParam::TINY_YOLOV4, "yolov4-tiny.conv.29"},
-    {CYoloTrainParam::TINY_YOLOV3, "yolov3-tiny.conv.11"},
-    {CYoloTrainParam::ENET_B0_YOLOV3, "enetb0-coco.conv.132"}
+    {"yolov4", "yolov4.conv.137"},
+    {"yolov3", "darknet53.conv.74"},
+    {"tiny_yolov4", "yolov4-tiny.conv.29"},
+    {"tiny_yolov3", "yolov3-tiny.conv.11"},
+    {"enet_b0_yolov3", "enetb0-coco.conv.132"}
 };
 
-std::map<int, std::string> _modelNames =
+std::map<QString, std::string> _modelNames =
 {
-    {CYoloTrainParam::YOLOV4, "YOLOv4"},
-    {CYoloTrainParam::YOLOV3, "YOLOv3"},
-    {CYoloTrainParam::TINY_YOLOV4, "Tiny YOLOv4"},
-    {CYoloTrainParam::TINY_YOLOV3, "Tiny YOLOv3"},
-    {CYoloTrainParam::ENET_B0_YOLOV3, "EfficientNet B0 YOLOv3"}
+    {"yolov4", "YOLOv4"},
+    {"yolov3", "YOLOv3"},
+    {"tiny_yolov4", "Tiny YOLOv4"},
+    {"tiny_yolov3", "Tiny YOLOv3"},
+    {"enet_b0_yolov3", "EfficientNet B0 YOLOv3"}
 };
 
 CYoloTrainParam::CYoloTrainParam() : CWorkflowTaskParam()
 {
     auto pluginDir = Utils::Plugin::getCppPath() + "/" + Utils::File::conformName(QObject::tr("YoloTrain")).toStdString() + "/";
-    m_cfg["model"] = std::to_string(TINY_YOLOV3);
-    m_cfg["modelName"] = _modelNames[TINY_YOLOV3];
+    m_cfg["model"] = "tiny_yolov4";
     m_cfg["classes"] = "1";
     m_cfg["batchSize"] = "32";
     m_cfg["epochs"] = "1";
@@ -94,6 +93,17 @@ void CYoloTrain::run()
     auto paramPtr = std::dynamic_pointer_cast<CYoloTrainParam>(m_pParam);
     if(paramPtr == nullptr)
         throw CException(CoreExCode::INVALID_PARAMETER, "Invalid parameters", __func__, __FILE__, __LINE__);
+
+    // Check model
+    auto search = m_modelNames.find(paramPtr->m_cfg["model"]);
+    if(search == m_modelNames.end())
+    {
+        std::string models = "";
+        for(auto it=m_modelNames.begin(); it!=m_modelNames.end(); ++it)
+            models += *it + ",";
+
+        throw CException(CoreExCode::INVALID_PARAMETER, "Invalid model, available models are: " + models, __func__, __FILE__, __LINE__);
+    }
 
     // Dataset preparation
     prepareData();
@@ -158,7 +168,6 @@ void CYoloTrain::prepareData()
     createGlobalDataFile();
 
     // Update config values
-    paramPtr->m_cfg["modelName"] = _modelNames[std::stoi(paramPtr->m_cfg["model"])];
     paramPtr->m_cfg["classes"] = std::to_string(m_classCount);
 }
 
@@ -284,7 +293,7 @@ void CYoloTrain::createConfigFile()
     int filters = (m_classCount + 5) * 3;
 
     QString pluginDir = QString::fromStdString(Utils::Plugin::getCppPath()) + "/" + Utils::File::conformName(QString::fromStdString(m_name)) + "/";
-    QString templatePath = pluginDir + "data/config/" + _modelConfigFiles[std::stoi(paramPtr->m_cfg["model"])];
+    QString templatePath = pluginDir + "data/config/" + _modelConfigFiles[QString::fromStdString(paramPtr->m_cfg["model"])];
     QString configPath = pluginDir + "data/config/training.cfg";
     paramPtr->m_cfg["configPath"] = configPath.toStdString();
 
@@ -450,7 +459,7 @@ void CYoloTrain::launchTraining()
     QString pluginDir = QString::fromStdString(Utils::Plugin::getCppPath()) + "/" + Utils::File::conformName(QString::fromStdString(m_name)) + "/";
     QString dataFilePath = pluginDir + "data/training.data";
     QString configFilePath = QString::fromStdString(paramPtr->m_cfg["configPath"]);
-    QString weightsFilePath = pluginDir + "data/models/pretrained/" + _modelWeightFiles[std::stoi(paramPtr->m_cfg["model"])];
+    QString weightsFilePath = pluginDir + "data/models/pretrained/" + _modelWeightFiles[QString::fromStdString(paramPtr->m_cfg["model"])];
     QString metricsFilePath = pluginDir + "data/metrics.txt";
     QString logFilePath = pluginDir + "data/log.txt";
     QString darknetExe = pluginDir + "darknet";

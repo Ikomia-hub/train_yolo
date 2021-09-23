@@ -20,12 +20,12 @@ void CYoloTrainWidget::init()
     assert(m_pParam);
 
     m_pComboModel = addCombo(tr("Model"));
-    m_pComboModel->addItem("YOLOv4", CYoloTrainParam::YOLOV4);
-    m_pComboModel->addItem("YOLOv3", CYoloTrainParam::YOLOV3);
-    m_pComboModel->addItem("Tiny YOLOv4", CYoloTrainParam::TINY_YOLOV4);
-    m_pComboModel->addItem("Tiny YOLOv3", CYoloTrainParam::TINY_YOLOV3);
-    m_pComboModel->addItem("EfficientNet B0 YOLOv3", CYoloTrainParam::ENET_B0_YOLOV3);
-    m_pComboModel->setCurrentIndex(m_pComboModel->findData(std::stoi(m_pParam->m_cfg["model"])));
+    m_pComboModel->addItem("yolov4");
+    m_pComboModel->addItem("yolov3");
+    m_pComboModel->addItem("tiny_yolov4");
+    m_pComboModel->addItem("tiny_yolov3");
+    m_pComboModel->addItem("enet_b0_yolov3");
+    m_pComboModel->setCurrentText(QString::fromStdString(m_pParam->m_cfg["model"]));
 
     m_pSpinWidth = addSpin("Input width", std::stoi(m_pParam->m_cfg["inputWidth"]), 1, 1024, 1);
     m_pSpinHeight = addSpin("Input height", std::stoi(m_pParam->m_cfg["inputHeight"]), 1, 1024, 1);
@@ -48,7 +48,7 @@ void CYoloTrainWidget::init()
 
 void CYoloTrainWidget::onApply()
 {
-    m_pParam->m_cfg["model"] = m_pComboModel->currentData().toString().toStdString();
+    m_pParam->m_cfg["model"] = m_pComboModel->currentText().toStdString();
     m_pParam->m_cfg["subdivision"] = std::to_string(m_pSpinSubdivision->value());
     m_pParam->m_cfg["inputWidth"] = std::to_string(m_pSpinWidth->value());
     m_pParam->m_cfg["inputHeight"] = std::to_string(m_pSpinHeight->value());

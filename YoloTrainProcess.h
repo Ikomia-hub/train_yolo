@@ -14,8 +14,6 @@ class YOLOTRAIN_EXPORT CYoloTrainParam: public CWorkflowTaskParam
 {
     public:
 
-        enum Model {YOLOV4, YOLOV3, TINY_YOLOV4, TINY_YOLOV3, ENET_B0_YOLOV3};
-
         CYoloTrainParam();
 };
 
@@ -56,13 +54,14 @@ class YOLOTRAIN_EXPORT CYoloTrain: public CMlflowTrainTask
 
     private:
 
-        int                     m_classCount = 0;
-        int                     m_mlflowLogFreq = 1;
-        std::atomic_bool        m_bStop{false};
-        std::atomic_bool        m_bFinished{false};
-        QString                 m_outputFolder;
-        QFile                   m_logFile;
-        std::queue<YoloMetrics> m_metricsQueue;
+        int                         m_classCount = 0;
+        int                         m_mlflowLogFreq = 1;
+        std::atomic_bool            m_bStop{false};
+        std::atomic_bool            m_bFinished{false};
+        QString                     m_outputFolder;
+        QFile                       m_logFile;
+        std::queue<YoloMetrics>     m_metricsQueue;
+        const std::set<std::string> m_modelNames = {"yolov4", "yolov3", "tiny_yolov4", "tiny_yolov3", "enet_bo_yolov3"};
 };
 
 //-----------------------------//
