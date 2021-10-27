@@ -4,29 +4,23 @@
 #include <QTextStream>
 #include <QFile>
 #include "YoloTrainGlobal.hpp"
-#include "Core/CProcessFactory.hpp"
-#include "Core/CMlflowTrainProcess.h"
+#include "Core/CTaskFactory.hpp"
+#include "Core/CMlflowTrainTask.h"
 
 //---------------------------//
 //----- CYoloTrainParam -----//
 //---------------------------//
-class YOLOTRAIN_EXPORT CYoloTrainParam: public CDnnTrainProcessParam
+class YOLOTRAIN_EXPORT CYoloTrainParam: public CWorkflowTaskParam
 {
     public:
 
-        enum Model {YOLOV4, YOLOV3, TINY_YOLOV4, TINY_YOLOV3, ENET_B0_YOLOV3};
-
         CYoloTrainParam();
-
-        void        setParamMap(const UMapString& paramMap) override;
-
-        UMapString  getParamMap() const override;
 };
 
 //----------------------//
 //----- CYoloTrain -----//
 //----------------------//
-class YOLOTRAIN_EXPORT CYoloTrain: public CMlflowTrainProcess
+class YOLOTRAIN_EXPORT CYoloTrain: public CMlflowTrainTask
 {
     public:
 
@@ -60,25 +54,26 @@ class YOLOTRAIN_EXPORT CYoloTrain: public CMlflowTrainProcess
 
     private:
 
-        int                     m_classCount = 0;
-        int                     m_mlflowLogFreq = 1;
-        std::atomic_bool        m_bStop{false};
-        std::atomic_bool        m_bFinished{false};
-        QString                 m_outputFolder;
-        QFile                   m_logFile;
-        std::queue<YoloMetrics> m_metricsQueue;
+        int                         m_classCount = 0;
+        int                         m_mlflowLogFreq = 1;
+        std::atomic_bool            m_bStop{false};
+        std::atomic_bool            m_bFinished{false};
+        QString                     m_outputFolder;
+        QFile                       m_logFile;
+        std::queue<YoloMetrics>     m_metricsQueue;
+        const std::set<std::string> m_modelNames = {"yolov4", "yolov3", "tiny_yolov4", "tiny_yolov3", "enet_bo_yolov3"};
 };
 
 //-----------------------------//
 //----- CYoloTrainFactory -----//
 //-----------------------------//
-class YOLOTRAIN_EXPORT CYoloTrainFactory : public CProcessFactory
+class YOLOTRAIN_EXPORT CYoloTrainFactory : public CTaskFactory
 {
     public:
 
         CYoloTrainFactory()
         {
-            m_info.m_name = QObject::tr("YoloTrain").toStdString();
+            m_info.m_name = "train_yolo";
             m_info.m_shortDescription = QObject::tr("Train YOLO neural network with darknet framework").toStdString();
             m_info.m_description = QObject::tr("Train YOLO neural network with darknet framework.").toStdString();
             m_info.m_path = QObject::tr("Plugins/C++/Train").toStdString();
@@ -91,7 +86,7 @@ class YOLOTRAIN_EXPORT CYoloTrainFactory : public CProcessFactory
             m_info.m_keywords = "deep,learning,detection,yolo,darknet";
         }
 
-        virtual ProtocolTaskPtr create(const ProtocolTaskParamPtr& pParam) override
+        virtual WorkflowTaskPtr create(const WorkflowTaskParamPtr& pParam) override
         {
             auto paramPtr = std::dynamic_pointer_cast<CYoloTrainParam>(pParam);
             if(paramPtr != nullptr)
@@ -99,7 +94,7 @@ class YOLOTRAIN_EXPORT CYoloTrainFactory : public CProcessFactory
             else
                 return create();
         }
-        virtual ProtocolTaskPtr create() override
+        virtual WorkflowTaskPtr create() override
         {
             auto paramPtr = std::make_shared<CYoloTrainParam>();
             assert(paramPtr != nullptr);

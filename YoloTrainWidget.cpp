@@ -1,12 +1,12 @@
 #include "YoloTrainWidget.h"
 
-CYoloTrainWidget::CYoloTrainWidget(QWidget *parent): CProtocolTaskWidget(parent)
+CYoloTrainWidget::CYoloTrainWidget(QWidget *parent): CWorkflowTaskWidget(parent)
 {
     m_pParam = std::make_shared<CYoloTrainParam>();
     init();
 }
 
-CYoloTrainWidget::CYoloTrainWidget(ProtocolTaskParamPtr pParam, QWidget *parent): CProtocolTaskWidget(parent)
+CYoloTrainWidget::CYoloTrainWidget(WorkflowTaskParamPtr pParam, QWidget *parent): CWorkflowTaskWidget(parent)
 {
     m_pParam = std::dynamic_pointer_cast<CYoloTrainParam>(pParam);
     if(m_pParam == nullptr)
@@ -19,46 +19,46 @@ void CYoloTrainWidget::init()
 {
     assert(m_pParam);
 
-    auto pComboModel = addCombo(tr("Model"));
-    pComboModel->addItem("YOLOv4", CYoloTrainParam::YOLOV4);
-    pComboModel->addItem("YOLOv3", CYoloTrainParam::YOLOV3);
-    pComboModel->addItem("Tiny YOLOv4", CYoloTrainParam::TINY_YOLOV4);
-    pComboModel->addItem("Tiny YOLOv3", CYoloTrainParam::TINY_YOLOV3);
-    pComboModel->addItem("EfficientNet B0 YOLOv3", CYoloTrainParam::ENET_B0_YOLOV3);
-    pComboModel->setCurrentIndex(pComboModel->findData(std::stoi(m_pParam->m_cfg["model"])));
+    m_pComboModel = addCombo(tr("Model"));
+    m_pComboModel->addItem("yolov4");
+    m_pComboModel->addItem("yolov3");
+    m_pComboModel->addItem("tiny_yolov4");
+    m_pComboModel->addItem("tiny_yolov3");
+    m_pComboModel->addItem("enet_b0_yolov3");
+    m_pComboModel->setCurrentText(QString::fromStdString(m_pParam->m_cfg["model"]));
 
-    auto pSpinWidth = addSpin("Input width", std::stoi(m_pParam->m_cfg["inputWidth"]), 1);
-    auto pSpinHeight = addSpin("Input height", std::stoi(m_pParam->m_cfg["inputHeight"]), 1);
-    auto pSpinTrainEvalRatio = addDoubleSpin("Train/Eval split ratio", std::stod(m_pParam->m_cfg["splitRatio"]), 0.1, 0.9, 0.1, 1);
-    auto pSpinBatchSize = addSpin("Batch size", std::stoi(m_pParam->m_cfg["batchSize"]), 1, 64, 1);
-    auto pSpinLr = addDoubleSpin("Learning rate", std::stod(m_pParam->m_cfg["learningRate"]), 0.0001, 0.1, 0.001, 4);
-    auto pSpinMomentum =  addDoubleSpin("Momentum", std::stod(m_pParam->m_cfg["momentum"]), 0.0, 1.0, 0.01, 2);
-    auto pSpinDecay = addDoubleSpin("Weight decay", std::stod(m_pParam->m_cfg["weightDecay"]), 0.0, 1.0, 0.0001, 4);
-    auto pSpinSubdivision = addSpin("Subdivision", std::stoi(m_pParam->m_cfg["subdivision"]), 4, 64, 2);
-    auto pCheckAutoConfig = addCheck("Auto configuration", std::stoi(m_pParam->m_cfg["autoConfig"]));
-    auto pBrowseFile = addBrowseFile("Configuration file path", QString::fromStdString(m_pParam->m_cfg["configPath"]), "Select configuration file");
-    pBrowseFile->setEnabled(std::stoi(m_pParam->m_cfg["autoConfig"]) == false);
-    auto pBrowseOutFolder = addBrowseFolder("Output folder", QString::fromStdString(m_pParam->m_cfg["outputPath"]), "Select output folder");
+    m_pSpinWidth = addSpin("Input width", std::stoi(m_pParam->m_cfg["inputWidth"]), 1, 1024, 1);
+    m_pSpinHeight = addSpin("Input height", std::stoi(m_pParam->m_cfg["inputHeight"]), 1, 1024, 1);
+    m_pSpinTrainEvalRatio = addDoubleSpin("Train/Eval split ratio", std::stod(m_pParam->m_cfg["splitRatio"]), 0.1, 0.9, 0.1, 1);
+    m_pSpinBatchSize = addSpin("Batch size", std::stoi(m_pParam->m_cfg["batchSize"]), 1, 64, 1);
+    m_pSpinLr = addDoubleSpin("Learning rate", std::stod(m_pParam->m_cfg["learningRate"]), 0.0001, 0.1, 0.001, 4);
+    m_pSpinMomentum =  addDoubleSpin("Momentum", std::stod(m_pParam->m_cfg["momentum"]), 0.0, 1.0, 0.01, 2);
+    m_pSpinDecay = addDoubleSpin("Weight decay", std::stod(m_pParam->m_cfg["weightDecay"]), 0.0, 1.0, 0.0001, 4);
+    m_pSpinSubdivision = addSpin("Subdivision", std::stoi(m_pParam->m_cfg["subdivision"]), 4, 64, 2);
+    m_pCheckAutoConfig = addCheck("Auto configuration", std::stoi(m_pParam->m_cfg["autoConfig"]));
+    m_pBrowseFile = addBrowseFile("Configuration file path", QString::fromStdString(m_pParam->m_cfg["configPath"]), "Select configuration file");
+    m_pBrowseFile->setEnabled(std::stoi(m_pParam->m_cfg["autoConfig"]) == false);
+    m_pBrowseOutFolder = addBrowseFolder("Output folder", QString::fromStdString(m_pParam->m_cfg["outputPath"]), "Select output folder");
 
-    connect(pCheckAutoConfig, &QCheckBox::stateChanged, [=](int state)
+    connect(m_pCheckAutoConfig, &QCheckBox::stateChanged, [&](int state)
     {
-        pBrowseFile->setEnabled(state == false);
+        m_pBrowseFile->setEnabled(state == false);
     });
+}
 
-    connect(m_pApplyBtn, &QPushButton::clicked, [=]
-    {
-        m_pParam->m_cfg["model"] = pComboModel->currentData().toString().toStdString();
-        m_pParam->m_cfg["subdivision"] = std::to_string(pSpinSubdivision->value());
-        m_pParam->m_cfg["inputWidth"] = std::to_string(pSpinWidth->value());
-        m_pParam->m_cfg["inputHeight"] = std::to_string(pSpinHeight->value());
-        m_pParam->m_cfg["splitRatio"] = std::to_string(pSpinTrainEvalRatio->value());
-        m_pParam->m_cfg["batchSize"] = std::to_string(pSpinBatchSize->value());
-        m_pParam->m_cfg["learningRate"] = std::to_string(pSpinLr->value());
-        m_pParam->m_cfg["momentum"] = std::to_string(pSpinMomentum->value());
-        m_pParam->m_cfg["weightDecay"] = std::to_string(pSpinDecay->value());
-        m_pParam->m_cfg["autoConfig"] = std::to_string(pCheckAutoConfig->isChecked());
-        m_pParam->m_cfg["configPath"] = pBrowseFile->getPath().toStdString();
-        m_pParam->m_cfg["outputPath"] = pBrowseOutFolder->getPath().toStdString();
-        emit doApplyProcess(m_pParam);
-    });
+void CYoloTrainWidget::onApply()
+{
+    m_pParam->m_cfg["model"] = m_pComboModel->currentText().toStdString();
+    m_pParam->m_cfg["subdivision"] = std::to_string(m_pSpinSubdivision->value());
+    m_pParam->m_cfg["inputWidth"] = std::to_string(m_pSpinWidth->value());
+    m_pParam->m_cfg["inputHeight"] = std::to_string(m_pSpinHeight->value());
+    m_pParam->m_cfg["splitRatio"] = std::to_string(m_pSpinTrainEvalRatio->value());
+    m_pParam->m_cfg["batchSize"] = std::to_string(m_pSpinBatchSize->value());
+    m_pParam->m_cfg["learningRate"] = std::to_string(m_pSpinLr->value());
+    m_pParam->m_cfg["momentum"] = std::to_string(m_pSpinMomentum->value());
+    m_pParam->m_cfg["weightDecay"] = std::to_string(m_pSpinDecay->value());
+    m_pParam->m_cfg["autoConfig"] = std::to_string(m_pCheckAutoConfig->isChecked());
+    m_pParam->m_cfg["configPath"] = m_pBrowseFile->getPath().toStdString();
+    m_pParam->m_cfg["outputPath"] = m_pBrowseOutFolder->getPath().toStdString();
+    emit doApplyProcess(m_pParam);
 }

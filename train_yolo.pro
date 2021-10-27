@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 QT += core gui widgets sql
-TARGET = YoloTrain
+TARGET = train_yolo
 
 win32: DESTDIR = $$(USERPROFILE)/Ikomia/Plugins/C++/$$TARGET
 unix: DESTDIR = $$(HOME)/Ikomia/Plugins/C++/$$TARGET
@@ -25,7 +25,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-include(../../../IkomiaApi/IkomiaPluginsCpp.pri)
+include(../../../IkomiaApi/cpp/IkomiaPluginsCpp.pri)
 
 HEADERS += \
     YoloTrain.hpp \
@@ -52,7 +52,7 @@ LIBS += $$link_dataprocess()
 unix:!macx {
 bundleDarknet.path = $$DESTDIR
 bundleDarknet.commands += $$quote(cp -rf $$PWD/../../../darknet/buildDarknet/darknet $$DESTDIR $$escape_expand(\n\t))
-bundleDarknet.commands += $$quote(patchelf --set-rpath \'\$$ORIGIN:\$$ORIGIN/../../../App/lib\' $$DESTDIR/darknet $$escape_expand(\n\t))
+#bundleDarknet.commands += $$quote(patchelf --set-rpath \'\$$ORIGIN:\$$ORIGIN/../../../App/lib\' $$DESTDIR/darknet $$escape_expand(\n\t))
 INSTALLS += bundleDarknet
 }
 
