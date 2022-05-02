@@ -39,7 +39,7 @@ std::map<QString, std::string> _modelNames =
 
 CYoloTrainParam::CYoloTrainParam() : CWorkflowTaskParam()
 {
-    auto pluginDir = Utils::Plugin::getCppPath() + "/" + Utils::File::conformName(QObject::tr("YoloTrain")).toStdString() + "/";
+    auto pluginDir = Utils::Plugin::getCppPath() + "/" + Utils::File::conformName("train_yolo").toStdString() + "/";
     m_cfg["model"] = "tiny_yolov4";
     m_cfg["classes"] = "1";
     m_cfg["batchSize"] = "32";
