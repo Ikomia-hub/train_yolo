@@ -530,9 +530,9 @@ void CYoloTrain::launchTraining()
     }
     m_bFinished = true;
 
-    //Wait for MLflow logging process
+    //Wait for MLflow logging process - timeout: 2 min
     emit m_signalHandler->doLog("Waiting for MLflow logging process...");
-    mlflowFuture.wait();
+    mlflowFuture.wait_for(std::chrono::minutes(2));
 
     //Log config file
     logArtifact(configFilePath.toStdString());
