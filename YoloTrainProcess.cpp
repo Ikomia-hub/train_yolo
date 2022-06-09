@@ -142,9 +142,7 @@ void CYoloTrain::prepareData()
     datasetInputPtr->save(jsonFile);
 
     // Read back the dataset as json
-    if(datasetInputPtr->load(jsonFile) == false)
-        throw CException(CoreExCode::INVALID_FILE, "Invalid dataset JSON file.", __func__, __FILE__, __LINE__);
-
+    datasetInputPtr->load(jsonFile);
     QJsonDocument json = datasetInputPtr->getJsonDocument();
 
     // Create dataset text annotation files
