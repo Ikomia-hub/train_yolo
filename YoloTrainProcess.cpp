@@ -142,7 +142,7 @@ void CYoloTrain::prepareData()
     datasetInputPtr->save(jsonFile);
 
     // Read back the dataset as json
-    datasetInputPtr->load(jsonFile);
+    datasetInputPtr->CDatasetIO::load(jsonFile);
     QJsonDocument json = datasetInputPtr->getJsonDocument();
 
     // Create dataset text annotation files
