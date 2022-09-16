@@ -6,6 +6,7 @@
 #include "YoloTrainGlobal.hpp"
 #include "Core/CTaskFactory.hpp"
 #include "Core/CMlflowTrainTask.h"
+#include "Main/CoreTools.hpp"
 
 //---------------------------//
 //----- CYoloTrainParam -----//
@@ -77,13 +78,13 @@ class YOLOTRAIN_EXPORT CYoloTrainFactory : public CTaskFactory
             m_info.m_shortDescription = QObject::tr("Train YOLO neural network with darknet framework").toStdString();
             m_info.m_description = QObject::tr("Train YOLO neural network with darknet framework.").toStdString();
             m_info.m_path = QObject::tr("Plugins/C++/Train").toStdString();
-            m_info.m_version = "1.2.2";
+            m_info.m_version = "1.3.0";
             m_info.m_iconPath = "Icon/icon.png";
             m_info.m_authors = "Ikomia team";
             m_info.m_article = "";
             m_info.m_license = "MIT License";
             m_info.m_repo = "https://github.com/Ikomia-dev/IkomiaPluginsCpp";
-            m_info.m_keywords = "deep,learning,detection,yolo,darknet";
+            m_info.m_keywords = "deep,learning,detection,yolo,darknet," + Utils::Plugin::getArchitectureKeywords();
         }
 
         virtual WorkflowTaskPtr create(const WorkflowTaskParamPtr& pParam) override
