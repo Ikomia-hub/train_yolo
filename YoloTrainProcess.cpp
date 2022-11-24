@@ -9,7 +9,6 @@ using namespace boost::python;
 //---------------------------//
 //----- CYoloTrainParam -----//
 //---------------------------//
-
 std::map<QString, QString> _modelConfigFiles =
 {
     {"yolov4", "template-yolov4.cfg"},
@@ -461,6 +460,15 @@ void CYoloTrain::launchTraining()
     QString metricsFilePath = pluginDir + "data/metrics.txt";
     QString logFilePath = pluginDir + "data/log.txt";
     QString darknetExe = pluginDir + "darknet";
+
+    std::string weightPath = weightsFilePath.toStdString();
+    if (!Utils::File::isFileExist(weightPath))
+    {
+        std::cout << "Downloading model..." << std::endl;
+        std::string modelName = _modelWeightFiles[QString::fromStdString(paramPtr->m_cfg["model"])].toStdString();
+        std::string downloadUrl = Utils::Plugin::getModelHubUrl() + "/" + m_name + "/" + modelName;
+        download(downloadUrl, weightPath);
+    }
 
     QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
 

@@ -62,7 +62,7 @@ class YOLOTRAIN_EXPORT CYoloTrain: public CMlflowTrainTask
         QString                     m_outputFolder;
         QFile                       m_logFile;
         std::queue<YoloMetrics>     m_metricsQueue;
-        const std::set<std::string> m_modelNames = {"yolov4", "yolov3", "tiny_yolov4", "tiny_yolov3", "enet_bo_yolov3"};
+        const std::set<std::string> m_modelNames = {"yolov4", "yolov3", "tiny_yolov4", "tiny_yolov3", "enet_b0_yolov3"};
 };
 
 //-----------------------------//
@@ -78,7 +78,7 @@ class YOLOTRAIN_EXPORT CYoloTrainFactory : public CTaskFactory
             m_info.m_shortDescription = QObject::tr("Train YOLO neural network with darknet framework").toStdString();
             m_info.m_description = QObject::tr("Train YOLO neural network with darknet framework.").toStdString();
             m_info.m_path = QObject::tr("Plugins/C++/Train").toStdString();
-            m_info.m_version = "1.3.0";
+            m_info.m_version = "1.4.0";
             m_info.m_iconPath = "Icon/icon.png";
             m_info.m_authors = "Ikomia team";
             m_info.m_article = "";
