@@ -4,8 +4,8 @@
 #include <QTextStream>
 #include <QFile>
 #include "YoloTrainGlobal.hpp"
-#include "Core/CTaskFactory.hpp"
-#include "Core/CMlflowTrainTask.h"
+#include "Task/CTaskFactory.hpp"
+#include "Task/CMlflowTrainTask.h"
 #include "Main/CoreTools.hpp"
 
 //---------------------------//

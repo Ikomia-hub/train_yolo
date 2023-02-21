@@ -1,7 +1,7 @@
 #ifndef YOLOTRAIN_HPP
 #define YOLOTRAIN_HPP
 
-#include "CPluginProcessInterface.hpp"
+#include "Core/CPluginProcessInterface.hpp"
 #include "YoloTrainGlobal.hpp"
 #include "YoloTrainProcess.h"
 #include "YoloTrainWidget.h"
